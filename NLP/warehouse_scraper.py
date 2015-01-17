@@ -11,10 +11,10 @@ def log(message):
     print "error: ", message
 
 def find(query):
+    print "QUERY: " + str(query)
     # returns a list of strings to drop into grab
-    r = requests.get("https://3dwarehouse.sketchup.com/warehouse/Search",
-                     params = {"class":"entity","q":query,"startRow":"1",
-                               "endRow":"100"})
+    r = requests.get("http://3dwarehouse.sketchup.com/warehouse/Search",
+                     params={"class":"entity","q":query,"startRow":"1", "endRow":"10"})
     output = []
     try:
         entries = r.json()["entries"]
@@ -25,7 +25,7 @@ def find(query):
         entry_id = entry["id"]
         try:
             entity = requests.get(
-                "https://3dwarehouse.sketchup.com/warehouse/GetEntity",
+                "http://3dwarehouse.sketchup.com/warehouse/GetEntity",
                 params = {"id":entry_id}).json()
             for filetype in filetypes:
                 if filetype in entity["binaries"]:
