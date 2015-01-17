@@ -8,12 +8,14 @@ public class json_fetcher : MonoBehaviour {
 
 	// Use this for initialization
 	IEnumerator Start () {
+		Debug.Log ("Commencing HTTP");
 		// Sending request:
-		WWW httpResponse = new WWW("158.130.167.232/latest"); 
+		WWW httpResponse = new WWW("http://127.0.0.1/latest"); 
 		
 		// Waiting for response:
 		yield return httpResponse;
 
+		Debug.Log (httpResponse);
 		Debug.Log (httpResponse.text);
 
 
@@ -108,9 +110,17 @@ public class json_fetcher : MonoBehaviour {
 		
 		
 	}
-	
+
+
+
 	// Update is called once per frame
 	void Update () {
-	
+		float xAxisValue = Input.GetAxis("Horizontal");
+		float zAxisValue = Input.GetAxis("Vertical");
+		float yAxisValue = Input.GetAxis ("Mouse Y");
+		if(Camera.current != null)
+		{
+			Camera.current.transform.Translate(new Vector3(xAxisValue, yAxisValue, zAxisValue));
+		}
 	}
 }
