@@ -1,6 +1,13 @@
 There is a computer on a table.  There is a grey cat under the table.
 
-There is a man on a couch.  The table is wooden and has a book on it.
+There is a man on a felt couch.  The table is wooden and has a book on it.
 
-There are ten trees.  There is a bird flying.  
+There is a tree.  There is a big pink bird flying.  
 
+There is a table.  There is a cat on it.  There is a mouse on it.
+
+There is a table.  There is a cat on it.  There is a mouse on the cat.
+
+There is a cat.  There is a dog.  There is a mouse between the cat and the dog.
+
+The blue light bulb is shiny. The ground is shiny. The salamander is on the ground. The salamander is to the left of the light bulb. The salamander is shiny. The salamander is facing east. 

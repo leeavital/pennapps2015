@@ -4,13 +4,13 @@ from simplejson import loads
 
 pp = pprint.PrettyPrinter(indent=4)
 
-SCENE_FILE = "../Descriptions/basic_scenes.txt"
+SCENE_FILE = "../Descriptions/first_demo.txt"
 server = jsonrpc.ServerProxy(jsonrpc.JsonRpc20(),
                              jsonrpc.TransportTcpIp(addr=("127.0.0.1", 8080)))
 
 
 scenes = [f for f in open(SCENE_FILE).read().split('\n') if f != '']
-for scene in scenes[:-1]:
+for scene in scenes:
     print scene
     print "\n"
     result = loads(server.parse(scene))
