@@ -1,0 +1,15 @@
+{
+  "name": ".",
+  "version": ".",
+  "homepage": "https://github.com/leeavital/pennapps2015",
+  "authors": [
+    "Lee Avital <leeavital@gmail.com>"
+  ],
+  "description": ".",
+  "main": ".",
+  "keywords": [
+    "."
+  ],
+  "license": "MIT",
+  "private": true
+}
