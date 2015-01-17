@@ -457,8 +457,10 @@ function showButtons(style) {
 
   function doSubmit() {
     var txt = document.getElementById('results').innerText;
-    $.post('/', {
-      text: txt
+    $.ajax('/', {
+        data: JSON.stringify({text: txt}),
+        contentType: 'application/json',
+        type: 'POST'
     });
   }
     </script>
