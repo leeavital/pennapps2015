@@ -1,0 +1,13 @@
+There is a table.
+
+There is a cat on a table.
+
+There is a cat under the table.
+
+There is a book on a table.
+
+There is a book on a cat on a table.
+
+There is a stool next to a table.
+
+There is a book on a stool which is next to a table.
