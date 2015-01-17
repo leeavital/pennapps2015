@@ -1,13 +1,19 @@
-There is a table.
+There is a desk.
 
-There is a cat on a table.
+There is a cat on a desk.
 
-There is a cat under the table.
+There is a cat under the desk.
 
-There is a book on a table.
+There is a book on a desk.
 
-There is a book on a cat on a table.
+There is a red book on a desk.
 
-There is a stool next to a table.
+There is a big book on a desk.
 
-There is a book on a stool which is next to a table.
+There is a big red book on a desk.
+
+There is a book on a cat on a desk.
+
+There is a fridge next to a desk.
+
+There is soda on a desk and a book on a desk.

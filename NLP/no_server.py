@@ -2,7 +2,7 @@ import jsonrpc
 import pprint
 from simplejson import loads
 from flask import Flask, request, redirect, url_for, \
-     abort, render_template, flash, make_response, jsonify # clean these up
+     abort, render_template, flash, make_response # clean these up
 app = Flask(__name__)
 app.config.from_object(__name__)
 
@@ -14,14 +14,12 @@ SCENE_FILE = "../Descriptions/first_demo.txt"
 server = jsonrpc.ServerProxy(jsonrpc.JsonRpc20(),
                              jsonrpc.TransportTcpIp(addr=("127.0.0.1", 8080)))
 
-f = {}
-# scenes = [f for f in open(SCENE_FILE).read().split('\n') if f != '']
-@app.route('/', methods=['POST'])
-def get_entities():
-# for scene in scenes:
-    print 'here'
-    global f
-    scene = request.json['text']
+
+scenes = [f for f in open(SCENE_FILE).read().split('\n') if f != '']
+# @app.route('/', methods=['POST'])
+# def get_entities():
+for scene in scenes:
+    # scene = request.json['text']
     print scene
     print "\n"
     result = loads(server.parse(scene))
@@ -77,15 +75,10 @@ def get_entities():
     print "\n"
     f['entities'] = entities
     f['deps'] = deps
-    return jsonify(f)
-
-
-@app.route('/latest', methods=['POST', 'GET'])
-def get_latest():
-    return jsonify(f)
+    # return flask.jsonify(**f)
 
 
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80)
+# if __name__ == '__main__':
+#     app.run(host='0.0.0.0', port=80)
 
