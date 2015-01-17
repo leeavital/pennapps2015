@@ -14,7 +14,7 @@ def find(search):
     # returns a list of strings to drop into grab
     r = requests.get("https://3dwarehouse.sketchup.com/warehouse/Search",
                      params = {"class":"entity","q":search,"startRow":"1",
-                               "endRow":"250"})
+                               "endRow":"1"})
     output = []
     try:
         entries = r.json()["entries"]
@@ -42,4 +42,6 @@ def grab(obj, filename):
     with open(filename, 'wb') as f:
         r.raw.decode_content = True
         shutil.copyfileobj(r.raw, f)
+
+
 

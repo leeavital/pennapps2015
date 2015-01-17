@@ -1,6 +1,7 @@
 import jsonrpc
 import pprint
 from simplejson import loads
+import warehouse_scraper
 from flask import Flask, request, redirect, url_for, \
      abort, render_template, flash, make_response, jsonify # clean these up
 app = Flask(__name__)
@@ -90,8 +91,44 @@ def static_index():
     return render_template("index.html")
 
 
+import threading
+
+class ModelDownloader(threading.Thread):
+
+  def __init__(self, objs):
+    threading.Thread.__init__(self)
+    self.objs = objs
+
+  def run(self):
+    import warehouse_scraper as w
+    import requests
+    import urllib
+    import json
+    for o in self.objs:
+      datum = w.find(o)[0]["description"]["binaries"]
+      print json.dumps(datum, indent=2)
+      id = ""
+      if "s7" in datum:
+        id = datum["s7"]["id"]
+      elif "s8" in datum:
+        id = datum["s8"]["id"]
+      elif "s6" in datum:
+        id = datum["s6"]["id"]
+      else:
+        print "NO SKP FILE FOUND"
+        return
+
+      url = "https://3dwarehouse.sketchup.com/warehouse/getpubliccontent?contentId=" + id + "&fn=" + o + ".skp"
+      print url
+
+
+      urllib.urlretrieve(url, "data/" + o + ".skp")
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80)
+    # app.run(host='0.0.0.0', port=80)
+
+    ModelDownloader(["banana"]).run()
+
+
 
