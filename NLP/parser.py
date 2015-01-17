@@ -40,11 +40,10 @@ def get_entities():
             if dep[0] == 'det':
                 entities[dep[1]] = []
             elif dep[0] == 'amod' or dep[0] == 'nsubj':
-                if 'is' not in dep:
-                    if dep[1] in entities:
-                        entities[dep[1]].append(dep[2])
-                    elif dep[2] in entities:
-                        entities[dep[2]].append(dep[1])
+              if dep[1] in entities:
+                  entities[dep[1]].append(dep[2])
+              elif dep[2] in entities:
+                  entities[dep[2]].append(dep[1])
             elif 'prep_' in dep[0]:
               if dep[1] == 'is': # backfill with nsubj
                 try:
