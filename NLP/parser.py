@@ -8,7 +8,6 @@ import urllib2
 from flask import Flask, request, redirect, url_for, \
      abort, render_template, flash, make_response, jsonify # clean these up
 from nltk.corpus import wordnet as wn
-from tasks import classify
 app = Flask(__name__)
 app.config.from_object(__name__)
 
@@ -18,14 +17,25 @@ pp = pprint.PrettyPrinter(indent=4)
 
 SCENE_FILE = "../Descriptions/first_demo.txt"
 server = jsonrpc.ServerProxy(jsonrpc.JsonRpc20(),
-        jsonrpc.TransportTcpIp(addr=("http://104.236.90.178/", 80)))
-print "SERVER"
-print server
+        jsonrpc.TransportTcpIp(addr=("127.0.0.1", 8080)))
+
+WAITING = "waiting"
+DOWNLOADING = "downloading"
+READY = "ready"
+server_state = "waiting"
+
+
 f = {}
 # scenes = [f for f in open(SCENE_FILE).read().split('\n') if f != '']
 @app.route('/', methods=['POST'])
 def get_entities():
-# for scene in scenes:
+    global server_state
+    if server_state == WAITING or server_state == READY:
+      print "Downloading..."
+      server_state = DOWNLOADING
+    else:
+      print "not accepting queries right now"
+      return jsonify({"error":"busy"})
     print 'here'
     global f
     scene = request.json['text']
@@ -36,6 +46,7 @@ def get_entities():
     print scene
     print "\n"
     result = loads(server.parse(scene))
+    print "got something from corenlp"
     entities = {}
     deps = []
     corefs = []
@@ -43,6 +54,7 @@ def get_entities():
         # pp.pprint(result['coref'][0][0]) 
         corefs = result['coref'][0]
     for sent in result['sentences']:
+        print "sentent ", sent
         # pp.pprint(sent['dependencies'])
         print corefs
         for dep in sent['dependencies']:
@@ -92,6 +104,7 @@ def get_entities():
                           # deps.append([obj1[0], dep[0], dep[1]])
 
     # deps = set(deps)
+    print "got here"
     f = {}
     pp.pprint(entities)
     print "\n"
@@ -99,12 +112,17 @@ def get_entities():
     print "\n"
     f['entities'] = entities
     f['deps'] = deps
+    # kick off an entity parse job
+    ModelDownloader(entities).start()
     return jsonify(f)
 
 
 @app.route('/latest', methods=['POST', 'GET'])
 def get_latest():
+  if server_state == READY:
     return jsonify(f)
+  else:
+    return jsonify({"error": "not ready"})
 
 
 @app.route('/classify', methods=['GET', 'POST'])
@@ -162,50 +180,28 @@ def classify():
     return str(sum(sims)/float(len(sims)))
 
 
-    
 
 @app.route('/', methods=['GET'])
 def static_index():
     return render_template("index.html")
 
 
-# import threading
+import threading
 
-# class ModelDownloader(threading.Thread):
+class ModelDownloader(threading.Thread):
 
-#   def __init__(self, objs):
-#     threading.Thread.__init__(self)
-#     self.objs = objs
+  def __init__(self, entities):
+    threading.Thread.__init__(self)
+    self.entities = entities
 
-#   def run(self):
-#     import warehouse_scraper as w
-#     import requests
-#     import urllib
-#     import json
-#     for o in self.objs:
-#       datum = w.find(o)[0]["description"]["binaries"]
-#       print json.dumps(datum, indent=2)
-#       id = ""
-#       if "s7" in datum:
-#         id = datum["s7"]["id"]
-#       elif "s8" in datum:
-#         id = datum["s8"]["id"]
-#       elif "s6" in datum:
-#         id = datum["s6"]["id"]
-#       else:
-#         print "NO SKP FILE FOUND"
-#         return
-
-#       url = "https://3dwarehouse.sketchup.com/warehouse/getpubliccontent?contentId=" + id + "&fn=" + o + ".skp"
-#       print url
-
-
-#       urllib.urlretrieve(url, "data/" + o + ".skp")
-
+  def run(self):
+    import time
+    for e in self.entities:
+      global server_state
+      print "downloading a entity...", e
+      time.sleep(3)
+      # do real work
+      server_state =  READY
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80)
-
-#     ModelDownloader(["banana"]).run()
-
-
