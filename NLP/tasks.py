@@ -26,6 +26,7 @@ def grab(entity):
     filename = 'warehouse-'+query+'-'+entity_id+'.'+binary_url.split('name=')[1].split('&')[0]+'.zip'
     urllib.urlretrieve(binary_url, filename)
     model_path = None
+    model_filename = None
     with zipfile.ZipFile(filename) as zf:
         for member in zf.infolist():
             words = member.filename.split('/')
@@ -40,7 +41,8 @@ def grab(entity):
                 zf.extract(member, path)
                 if '.dae' in member.filename:
                     model_path = path
-    return model_path
+                    model_filename = member.filename
+    return model_path, model_filename
 
 @app.task
 def processor(particle):
@@ -76,10 +78,12 @@ def processor(particle):
     try:
         creation = {}
         creation["cnn_score"] = score
-        model_path = grab(entity)
-        creation["model_path"] = model_path
-        creation["ratio"] = (0.0, 0.0)
-        # ratio of width : (height + depth)
+        model_path, model_filename = grab(entity)
+        creation["model_path"] = model_path + '/' + model_filename
+        os.system('xvfb-run meshlabserver -l '+model_path+'/logfile.txt -i ' +
+                  creation['model_path'] + ' -s measure.mlx')
+        with open(model_path + '/logfile.txt') as logfile:
+            creation["mesh"] = logfile.read()
         creation["url_on_child"] = 'http://' + LOCAL_IP + '/' + model_path
         requests.post(COLLECTOR_ENDPOINT, json = creation)
     except:
