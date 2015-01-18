@@ -1,5 +1,6 @@
 import os
 import os.path
+import json
 import urllib
 import zipfile
 import requests
@@ -8,15 +9,14 @@ from celery import Celery
 app = Celery('hello', broker='redis://104.236.92.111:6379/0')
 
 
-os.mkdir('models')
 
-CLASSIFY_ENDPOINT = 'http://158.130.167.232/classify'
-COLLECTOR_ENDPOINT = 'http://localhost/'
+CLASSIFY_ENDPOINT = 'http://104.236.90.178/classify'
+COLLECTOR_ENDPOINT = 'http://104.236.95.94:8090/'
 LOCAL_IP = urllib.urlopen('http://ipecho.net/plain').read()
 
 
 def log(message):
-    requests.post(COLLECTOR_ENDPOINT, json = {"error":message})
+    requests.post(COLLECTOR_ENDPOINT, data=json.dumps({"query":message}), headers={'content-type':'application/json'})
     print "error: ", message
 
 def grab(entity):
@@ -30,7 +30,7 @@ def grab(entity):
     with zipfile.ZipFile(filename) as zf:
         for member in zf.infolist():
             words = member.filename.split('/')
-            path = 'models\\'+filename.replace('.zip', '')
+            path = 'models/'+filename.replace('.zip', '')
             for word in words[:-1]:
                 drive, word = os.path.splitdrive(word)
                 head, word = os.path.split(word)
@@ -69,8 +69,12 @@ def processor(particle):
         log("warehouse-processor3-"+entry_id)
         return False
     try:
-        r = requests.post(CLASSIFY_ENDPOINT, json = {'url':entity['binaries']['bot_lt']['url'],
-                                                     'query':query})
+        print entity['binaries']['bot_lt']['url']
+        #r = requests.post(CLASSIFY_ENDPOINT)
+        js = {'url':entity['binaries']['bot_lt']['url'],'query':query}
+        print "GOT JS"
+        import json
+        r = requests.post(CLASSIFY_ENDPOINT, data = json.dumps(js), headers={'content-type':'application/json'})
         score = float(r.text)
     except:
         log("warehouse-processor4-"+str(particle))
@@ -78,14 +82,21 @@ def processor(particle):
     try:
         creation = {}
         creation["cnn_score"] = score
+        print "A"
         model_path, model_filename = grab(entity)
+        print "A.5"
         creation["model_path"] = model_path + '/' + model_filename
-        os.system('xvfb-run meshlabserver -l '+model_path+'/logfile.txt -i ' +
-                  creation['model_path'] + ' -s measure.mlx')
-        with open(model_path + '/logfile.txt') as logfile:
-            creation["mesh"] = logfile.read()
+        print "A.6"
+        #print 'xvfb-run meshlabserver -l '+model_path+'/logfile.txt -i ' + creation['model_path'] + ' -s measure.mlx'
+        #os.system('xvfb-run meshlabserver -l '+model_path+'/logfile.txt -i ' +
+        #          creation['model_path'] + ' -s measure.mlx')
+        print "B"
+        #with open(model_path + '/logfile.txt') as logfile:
+        #    creation["mesh"] = logfile.read()
+        print "C"
         creation["url_on_child"] = 'http://' + LOCAL_IP + '/' + model_path
-        requests.post(COLLECTOR_ENDPOINT, json = creation)
+        print "SENDING LAST"
+        requests.post(COLLECTOR_ENDPOINT, data = json.dumps(creation),headers={'content-type':'application/json'})
     except:
         log("warehouse-processor5-"+str(particle))
         return False

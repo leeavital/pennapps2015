@@ -18,8 +18,9 @@ pp = pprint.PrettyPrinter(indent=4)
 
 SCENE_FILE = "../Descriptions/first_demo.txt"
 server = jsonrpc.ServerProxy(jsonrpc.JsonRpc20(),
-                             jsonrpc.TransportTcpIp(addr=("127.0.0.1", 8080)))
-
+        jsonrpc.TransportTcpIp(addr=("http://104.236.90.178/", 80)))
+print "SERVER"
+print server
 f = {}
 # scenes = [f for f in open(SCENE_FILE).read().split('\n') if f != '']
 @app.route('/', methods=['POST'])
