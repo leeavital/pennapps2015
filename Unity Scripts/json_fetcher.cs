@@ -10,13 +10,13 @@ public class json_fetcher : MonoBehaviour {
 	IEnumerator Start () {
 		Debug.Log ("Commencing HTTP");
 		// Sending request:
-		WWW httpResponse = new WWW("http://127.0.0.1/latest"); 
+		WWW httpResponse = new WWW("http://localhost/latest"); 
 		
 		// Waiting for response:
 		yield return httpResponse;
 
 		Debug.Log (httpResponse);
-		Debug.Log (httpResponse.text);
+			Debug.Log (httpResponse.text);
 
 
 		var data = JSON.Parse (httpResponse.text);
@@ -120,7 +120,29 @@ public class json_fetcher : MonoBehaviour {
 				y = meshDic[obj].renderer.bounds.size.y;
 				nameToObject[subject].transform.position = new Vector3(v, y_pos, v);
 				break;
+			case "prep_in_front_of":
+				y = meshDic[obj].renderer.transform.position.y;
+				_z = meshDic[obj].renderer.transform.position.z + 10;
+				_x = meshDic[obj].renderer.transform.position.x;
+//				meshDic[subject].renderer.transform.position = new Vector3(_x, y, _z);
+				nameToObject[subject].transform.position = new Vector3(_x, y, _z);
+				meshDic[subject].renderer.transform.position = new Vector3(_x, y, _z);
+				break;
+
+			case "prep_behind":
+				y = meshDic[obj].renderer.transform.position.y;
+				_z = meshDic[obj].renderer.transform.position.z - meshDic[obj].renderer.bounds.size.z - 10;
+				_x = meshDic[obj].renderer.transform.position.x;
+
+				nameToObject[subject].transform.position = new Vector3(_x, y, _z);
+				meshDic[subject].renderer.transform.position = new Vector3(_x, y, _z);
+			
+				break;
+			default:
+				Debug.LogWarning("Unknown preposition: " + preposition);
+				break;
 			}
+			
 		}
 
 	
