@@ -50,9 +50,7 @@ def processor(particle):
     query, entry_id = particle
     entity = None
     try:
-        r = json.load(urllib2.urlopen(
-            'https://3dwarehouse.sketchup.com/warehouse/GetEntity?id='+entry_id
-            ))
+        r = json.load(urllib2.urlopen('https://3dwarehouse.sketchup.com/warehouse/GetEntity?id='+entry_id))
         for filetype in ["ks", "k2"]:
             if filetype in r["binaries"]:
                 if r["binaries"][filetype]["fileSize"] < 15000000:
