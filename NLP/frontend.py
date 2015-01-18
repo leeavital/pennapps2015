@@ -8,7 +8,8 @@ import urllib2
 from flask import Flask, request, redirect, url_for, \
      abort, render_template, flash, make_response, jsonify # clean these up
 from nltk.corpus import wordnet as wn
-from tasks import classify
+
+
 app = Flask(__name__)
 app.config.from_object(__name__)
 
@@ -29,10 +30,6 @@ def get_entities():
     print 'here'
     global f
     scene = request.json['text']
-    scene = "There is an outside.  There is a player.  " + scene
-    scene = re.sub(' out', ' outside ', scene)
-    scene = re.sub(' me', ' the player ', scene)
-
     print scene
     print "\n"
     result = loads(server.parse(scene))
@@ -54,9 +51,6 @@ def get_entities():
                   entities[dep[1]].append(dep[2])
               elif dep[2] in entities:
                   entities[dep[2]].append(dep[1])
-            elif 'advmod' in dep[0]:
-                entities['environment'] = dep[1]
-
             elif 'prep_' in dep[0]:
               if dep[1] == 'is': # backfill with nsubj
                 try:

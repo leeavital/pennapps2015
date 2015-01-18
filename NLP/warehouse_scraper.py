@@ -35,45 +35,41 @@ def log(message):
     print "error: ", message
 
 
-def find(query):
-    print "QUERY: " + str(query)
+def emitter(query):
     # returns a list of strings to drop into grab
     r = requests.get("http://3dwarehouse.sketchup.com/warehouse/Search",
-                     params={"class":"entity","q":query,"startRow":"1", "endRow":"10"})
-
+                     params = {"class":"entity","q":query,"startRow":"1",
+                               "endRow":"50"})
     output = []
     try:
         entries = r.json()["entries"]
     except:
-        log("warehouse-search-"+query)
-        return
-    for entry in entries:
-        entry_id = entry["id"]
-        try:
-            entity = requests.get(
-                "http://3dwarehouse.sketchup.com/warehouse/GetEntity",
-                params = {"id":entry_id}).json()
-            for filetype in filetypes:
-                if filetype in entity["binaries"]:
-                    if entity["binaries"][filetype]["fileSize"] < 15000000:
-                        output.append({"source":"warehouse",
-                                       "url":entity["binaries"][filetype]["url"],
-                                       "description":entity})
-        except:
-            log("warehouse-entity-"+entry_id)
-    return output
-
-'''
-def grab(obj, filename):
-    r = requests.get(obj["url"])
-    with open(filename, 'wb') as f:
-        r.raw.decode_content = True
-        shutil.copyfileobj(r.raw, f)
-'''
-
-
-@app.route('/', methods=['POST'])
+        log("warehouse-emitter1-"+query)
+        return []
+    r = requests.get("http://3dwarehouse.sketchup.com/warehouse/Search",
+                     params = {"class":"entity","q":query,"startRow":"1",
+                               "endRow":"50","sortBy":"popularity DESC"})
+    try:
+        entries += r.json()["entries"]
+    except:
+        log("warehouse-emitter2-"+query)
+        return []
+    return zip([query] * len(entries), map(lambda x:x["id"], entries))
+@app.route('/model/<query>',methods=['POST', 'GET'])
+def get_model(query):
+    
+    d = {u'cnn_score': 0.0608864379085, u'url_on_child': u'http://104.236.92.93/models/warehouse-cat-10a4dc62d8b88fedca82fb5567f1d35c.ks/models', u'model_path': u'models/warehouse-cat-10a4dc62d8b88fedca82fb5567f1d35c.ks/models/models/untitled.dae'}
+    u = d['url_on_child'][:21]+'NLP/'+d['url_on_child'][21:]
+    print u
+    return str(u + '/models/'+d['model_path'].split('/')[-1])
+COLLECTED = 0
+@app.route('/', methods=['POST', 'GET'])
 def collect():
+    global COLLECTED
+    COLLECTED += 1
+    if COLLECTED == count:
+        print "GOT EM ALL"
+        print time.time() - t
     print request
     entity = request.get_json()
     print entity
@@ -87,7 +83,11 @@ def collector(entities):
 
 if __name__ == '__main__':
     print 'Model: '
-    query = str(raw_input())
-    for particle in emitter(query):
-        processor.delay(particle)
-    app.run(host='0.0.0.0', port=80)
+    import time
+    count = 0
+    #query = str(raw_input())
+    #t = time.time()
+    #for particle in emitter(query):
+    #    processor.delay(particle)
+    #	count += 1
+    app.run(host='0.0.0.0', port=8090)
