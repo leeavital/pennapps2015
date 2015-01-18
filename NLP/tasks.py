@@ -26,6 +26,7 @@ def grab(entity):
     binary_url = entity['binary_url']
     filename = 'warehouse-'+query+'-'+entity_id+'.'+binary_url.split('name=')[1].split('&')[0]+'.zip'
     urllib.urlretrieve(binary_url, filename)
+    '''
     model_path = None
     model_filename = None
     with zipfile.ZipFile(filename) as zf:
@@ -44,6 +45,8 @@ def grab(entity):
                     model_path = path
                     model_filename = member.filename
     return model_path, model_filename
+    '''
+    return './', filename
 
 @app.task
 def processor(particle):
