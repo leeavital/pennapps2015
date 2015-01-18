@@ -39,7 +39,7 @@ def emitter(query):
     # returns a list of strings to drop into grab
     r = requests.get("http://3dwarehouse.sketchup.com/warehouse/Search",
                      params = {"class":"entity","q":query,"startRow":"1",
-                               "endRow":"25"})
+                               "endRow":"50"})
     output = []
     try:
         entries = r.json()["entries"]
@@ -48,13 +48,20 @@ def emitter(query):
         return []
     r = requests.get("http://3dwarehouse.sketchup.com/warehouse/Search",
                      params = {"class":"entity","q":query,"startRow":"1",
-                               "endRow":"25","sortBy":"popularity DESC"})
+                               "endRow":"50","sortBy":"popularity DESC"})
     try:
         entries += r.json()["entries"]
     except:
         log("warehouse-emitter2-"+query)
         return []
     return zip([query] * len(entries), map(lambda x:x["id"], entries))
+@app.route('/model/<query>',methods=['POST', 'GET'])
+def get_model(query):
+    
+    d = {u'cnn_score': 0.0608864379085, u'url_on_child': u'http://104.236.92.93/models/warehouse-cat-10a4dc62d8b88fedca82fb5567f1d35c.ks/models', u'model_path': u'models/warehouse-cat-10a4dc62d8b88fedca82fb5567f1d35c.ks/models/models/untitled.dae'}
+    u = d['url_on_child'][:21]+'NLP/'+d['url_on_child'][21:]
+    print u
+    return str(u + '/models/'+d['model_path'].split('/')[-1])
 COLLECTED = 0
 @app.route('/', methods=['POST', 'GET'])
 def collect():
@@ -78,9 +85,9 @@ if __name__ == '__main__':
     print 'Model: '
     import time
     count = 0
-    query = str(raw_input())
-    t = time.time()
-    for particle in emitter(query):
-        processor.delay(particle)
-	count += 1
+    #query = str(raw_input())
+    #t = time.time()
+    #for particle in emitter(query):
+    #    processor.delay(particle)
+    #	count += 1
     app.run(host='0.0.0.0', port=8090)
