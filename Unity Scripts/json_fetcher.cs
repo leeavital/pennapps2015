@@ -21,9 +21,10 @@ public class json_fetcher : MonoBehaviour {
 
 		var data = JSON.Parse (httpResponse.text);
 
+		JSONNode entityModels = data ["entityModels"].AsObject;
 
 
-		Debug.Log (data ["entities"].AsObject);
+
 
 		Dictionary<string, GameObject> nameToObject = new Dictionary<string, GameObject> ();
 		Dictionary<string, GameObject> meshDic = new Dictionary<string, GameObject> ();
@@ -34,7 +35,7 @@ public class json_fetcher : MonoBehaviour {
 		{
 			Color c = Color.black;
 			Debug.Log ("Insantiating: " + e.Key);
-			GameObject obj = (GameObject)Instantiate(Resources.Load(e.Key));
+			GameObject obj = (GameObject)Instantiate(Resources.Load(entityModels[e.Key]));
 			// e.value is a list of qualifiers (i.e. book: ["red"])
 			// cube.AddComponent<Rigidbody>();
 			obj.transform.position = new Vector3(0, 0, 0);
