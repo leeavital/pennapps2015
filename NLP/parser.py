@@ -103,8 +103,7 @@ def get_latest():
 def classify():
     query= request.json['query']
     url = request.json['url']
-    tags = request.json['tags']
-    print query, url, tags
+    print query, url
     req = urllib2.Request("https://sender.blockspring.com/api_v2/blocks/d54a2e2c28aebab4fe079ff547cea495?api_key=b93c92e09d3b2ffd8ea386a1e93ba0ea")
     req.add_header('Content-Type', 'application/json')
 
