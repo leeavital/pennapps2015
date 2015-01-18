@@ -35,22 +35,15 @@ def log(message):
     print "error: ", message
 
 
-def find(query):
-    print "QUERY: " + str(query)
+def emitter(query):
     # returns a list of strings to drop into grab
     r = requests.get("http://3dwarehouse.sketchup.com/warehouse/Search",
-<<<<<<< HEAD
                      params = {"class":"entity","q":query,"startRow":"1",
                                "endRow":"25"})
-=======
-                     params={"class":"entity","q":query,"startRow":"1", "endRow":"10"})
-
->>>>>>> d79eaf09223d241bd179dab460dce9ee71bbe4e7
     output = []
     try:
         entries = r.json()["entries"]
     except:
-<<<<<<< HEAD
         log("warehouse-emitter1-"+query)
         return []
     r = requests.get("http://3dwarehouse.sketchup.com/warehouse/Search",
@@ -64,36 +57,6 @@ def find(query):
     return zip([query] * len(entries), map(lambda x:x["id"], entries))
 COLLECTED = 0
 @app.route('/', methods=['POST', 'GET'])
-=======
-        log("warehouse-search-"+query)
-        return
-    for entry in entries:
-        entry_id = entry["id"]
-        try:
-            entity = requests.get(
-                "http://3dwarehouse.sketchup.com/warehouse/GetEntity",
-                params = {"id":entry_id}).json()
-            for filetype in filetypes:
-                if filetype in entity["binaries"]:
-                    if entity["binaries"][filetype]["fileSize"] < 15000000:
-                        output.append({"source":"warehouse",
-                                       "url":entity["binaries"][filetype]["url"],
-                                       "description":entity})
-        except:
-            log("warehouse-entity-"+entry_id)
-    return output
-
-'''
-def grab(obj, filename):
-    r = requests.get(obj["url"])
-    with open(filename, 'wb') as f:
-        r.raw.decode_content = True
-        shutil.copyfileobj(r.raw, f)
-'''
-
-
-@app.route('/', methods=['POST'])
->>>>>>> d79eaf09223d241bd179dab460dce9ee71bbe4e7
 def collect():
     global COLLECTED
     COLLECTED += 1
