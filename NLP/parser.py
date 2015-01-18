@@ -8,7 +8,7 @@ import urllib2
 from flask import Flask, request, redirect, url_for, \
      abort, render_template, flash, make_response, jsonify # clean these up
 from nltk.corpus import wordnet as wn
-from tasks import classify
+import requests
 app = Flask(__name__)
 app.config.from_object(__name__)
 
@@ -26,7 +26,6 @@ f = {}
 @app.route('/', methods=['POST'])
 def get_entities():
 # for scene in scenes:
-    print 'here'
     global f
     scene = request.json['text']
     scene = "There is an outside.  There is a player.  " + scene
@@ -99,13 +98,23 @@ def get_entities():
     print "\n"
     f['entities'] = entities
     f['deps'] = deps
+
+    print entities
+    getEntityModelsAsync(entities)
+
     return jsonify(f)
 
 
 @app.route('/latest', methods=['POST', 'GET'])
 def get_latest():
-    return jsonify(f)
-
+    # get f.entities from master server
+    # if they are ready, return jsonify(f). Else return waiting.
+    entitityModels = getEntityModels([]) # TODO use the actual entities
+    if entitityModels == None:
+      return jsonify({"error": "Not yet!"})
+    else:
+      # download all the zip files
+      return jsonify(f)
 
 @app.route('/classify', methods=['GET', 'POST'])
 def classify():
@@ -150,9 +159,6 @@ def classify():
     #     except:
     #         print "COULDNT SIMS: " + str(x)
     sims = [x for x in sims if x != None]
-    print sims
-
-  
 
     print sims
 
@@ -162,50 +168,38 @@ def classify():
     return str(sum(sims)/float(len(sims)))
 
 
-    
-
 @app.route('/', methods=['GET'])
 def static_index():
     return render_template("index.html")
 
 
-# import threading
+def getEntityModelsAsync(entities):
+  print "get models async"
+  import threading
+  class T(threading.Thread):
+    def __init__(self, entities):
+      threading.Thread.__init__(self)
+      self.entities = entities
+    def run(self):
+      getEntityModels(self.entities)
 
-# class ModelDownloader(threading.Thread):
-
-#   def __init__(self, objs):
-#     threading.Thread.__init__(self)
-#     self.objs = objs
-
-#   def run(self):
-#     import warehouse_scraper as w
-#     import requests
-#     import urllib
-#     import json
-#     for o in self.objs:
-#       datum = w.find(o)[0]["description"]["binaries"]
-#       print json.dumps(datum, indent=2)
-#       id = ""
-#       if "s7" in datum:
-#         id = datum["s7"]["id"]
-#       elif "s8" in datum:
-#         id = datum["s8"]["id"]
-#       elif "s6" in datum:
-#         id = datum["s6"]["id"]
-#       else:
-#         print "NO SKP FILE FOUND"
-#         return
-
-#       url = "https://3dwarehouse.sketchup.com/warehouse/getpubliccontent?contentId=" + id + "&fn=" + o + ".skp"
-#       print url
+  T(entities).start()
 
 
-#       urllib.urlretrieve(url, "data/" + o + ".skp")
+
+def getEntityModels(entities):
+  MASTER_SERVER = "http://localhost:9683"
+  print "CHANGE THE MASTER SERVER"
+  try:
+    req = requests.post(MASTER_SERVER, data=json.dumps(entities))
+    if req.status == 200:
+      return json.loads(req.text)
+    else:
+      return None
+  except:
+    print "IO failure"
+    return None
 
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80)
-
-#     ModelDownloader(["banana"]).run()
-
-
