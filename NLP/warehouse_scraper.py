@@ -39,7 +39,7 @@ def emitter(query):
     # returns a list of strings to drop into grab
     r = requests.get("http://3dwarehouse.sketchup.com/warehouse/Search",
                      params = {"class":"entity","q":query,"startRow":"1",
-                               "endRow":"23"})
+                               "endRow":"25"})
     output = []
     try:
         entries = r.json()["entries"]
@@ -48,16 +48,21 @@ def emitter(query):
         return []
     r = requests.get("http://3dwarehouse.sketchup.com/warehouse/Search",
                      params = {"class":"entity","q":query,"startRow":"1",
-                               "endRow":"23","sortBy":"popularity DESC"})
+                               "endRow":"25","sortBy":"popularity DESC"})
     try:
         entries += r.json()["entries"]
     except:
         log("warehouse-emitter2-"+query)
         return []
     return zip([query] * len(entries), map(lambda x:x["id"], entries))
-
-@app.route('/', methods=['POST'])
+COLLECTED = 0
+@app.route('/', methods=['POST', 'GET'])
 def collect():
+    global COLLECTED
+    COLLECTED += 1
+    if COLLECTED == count:
+        print "GOT EM ALL"
+        print time.time() - t
     print request
     entity = request.get_json()
     print entity
@@ -71,7 +76,11 @@ def collector(entities):
 
 if __name__ == '__main__':
     print 'Model: '
+    import time
+    count = 0
     query = str(raw_input())
+    t = time.time()
     for particle in emitter(query):
         processor.delay(particle)
-    app.run(host='0.0.0.0', port=80)
+	count += 1
+    app.run(host='0.0.0.0', port=8090)

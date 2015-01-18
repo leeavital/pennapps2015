@@ -8,7 +8,6 @@ from celery import Celery
 app = Celery('hello', broker='redis://104.236.92.111:6379/0')
 
 
-os.mkdir('models')
 
 CLASSIFY_ENDPOINT = 'http://158.130.167.232/classify'
 COLLECTOR_ENDPOINT = 'http://localhost/'
