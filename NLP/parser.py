@@ -11,6 +11,8 @@ from nltk.corpus import wordnet as wn
 app = Flask(__name__)
 app.config.from_object(__name__)
 
+MASTER_SERVER_ENDPOINT  = "http://104.236.95.94:8090/model/"
+
 app.config.from_envvar('FLASKR_SETTINGS', silent=True)
 
 pp = pprint.PrettyPrinter(indent=4)
@@ -188,20 +190,45 @@ def static_index():
 
 import threading
 
+
 class ModelDownloader(threading.Thread):
 
   def __init__(self, entities):
     threading.Thread.__init__(self)
     self.entities = entities
+    self.RESOURCE_PATH = "/Users/lee/lolzunity/Assets/Resources/"
 
   def run(self):
     import time
-    for e in self.entities:
-      global server_state
-      print "downloading a entity...", e
-      time.sleep(3)
-      # do real work
+    import urllib
+    from zipfile import ZipFile
+    import glob
+    import requests
+    import os
+    entityToModel = {}
+    try:
+      for e in self.entities:
+        global server_state
+        print "downloading a entity...", e
+        # get a real link
+        # zipPath = "http://104.131.24.156/NLP/warehouse-cat-fa44223c6f785c60e71da2487cb2ee5b.k2.zip"
+        zipPath = requests.get(MASTER_SERVER_ENDPOINT + e).text
+        print zipPath
+        zipDestination = self.RESOURCE_PATH + e + ".zip"
+        print zipDestination
+        urllib.urlretrieve(zipPath,zipDestination)
+        os.chmod(zipDestination, 777)
+        ZipFile(zipDestination).extractall(self.RESOURCE_PATH + e)
+        daeSansExtension = (glob.glob(self.RESOURCE_PATH + e + "/**/*.dae")[0])[0:-4]
+        entityToModel[e] = daeSansExtension.replace(self.RESOURCE_PATH, '')
+        # do real work
+
+      print entityToModel
+      global f
+      f["entityModels"] = entityToModel
       server_state =  READY
+    except:
+      server_state = WAITING
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80)
