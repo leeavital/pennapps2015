@@ -1,0 +1,1 @@
+meshlabserver -l logfile.txt -i untitled.dae -s measure.mlx

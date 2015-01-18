@@ -16,10 +16,6 @@
       box-shadow: 0 0 !important;
     }
 
-    .recording:after {
-      content: "recording...";
-    }
-
     textarea {
       width: 100%;
       font-size: 24px;
@@ -28,36 +24,49 @@
   <script type="text/javascript" charset="utf-8" src="static/bower_components/jquery/dist/jquery.min.js">
   </script>
   <script type="text/javascript" charset="utf-8">
-    var recognition = new webkitSpeechRecognition();
-    var $btn = $('#record-btn');
+    $(function(){ 
+      var $btn = $('#record-btn');
+      var $lbl = $('h1');
+      console.log($btn);
 
-    function startRecording() {
-      $btn.addClass('recording');
-      recognition.start();
+      window.startRecording = function () {
+        var recognition = new webkitSpeechRecognition();
+        $btn.addClass('recording');
+        $lbl.show();
+        recognition.start();
 
-      recognition.onresult = function(event) {
-        if (event.results.length > 0) {
-          var r = (event.results[0][0].transcript);
-          $('textarea').text(r);
-        } else {
+        recognition.onresult = function(event) {
+          if (event.results.length > 0) {
+            var r = (event.results[0][0].transcript);
+            $('textarea').text(r);
+          } else {
 
+          }
+          $btn.removeClass('recording');
+          $lbl.hide();
         }
-        $btn.removeClass('recording');
       }
-    }
 
-    function doSubmit() {
-      $.ajax({
-        type: 'POST',
-        data: JSON.stringify({text: $('textarea').val()}),
-        contentType: 'application/json'
+      $(document).on('keyup', function ( e ) {
+          if(e.keyCode == 32) {
+            window.startRecording();
+          }
       });
-    }
+
+      window.doSubmit = function() {
+        $.ajax({
+          type: 'POST',
+          data: JSON.stringify({text: $('textarea').val()}),
+          contentType: 'application/json'
+        });
+      }
+    });
     </script>
   </head>
   <body>
     <textarea></textarea>
     <div id="record-btn" class="record" onclick="startRecording();">.</div>
     <button onclick="doSubmit()">Submit</button>
+    <h1 style="display: none">Recording...</h1>
   </body>
 </html>

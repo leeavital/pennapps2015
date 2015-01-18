@@ -1,0 +1,24 @@
+Mesh C:/pennapps/pennapps2015/NLP/untitled.dae loaded has 81697 vn 101012 fn
+Apply FilterScript: 'C:/pennapps/pennapps2015/NLP/filter_measure.xml'
+Failed to apply script file C:/pennapps/pennapps2015/NLP/filter_measure.xml
+Mesh C:/pennapps/pennapps2015/NLP/untitled.dae loaded has 81697 vn 101012 fn
+Apply FilterScript: 'C:/pennapps/pennapps2015/NLP/filter_measure.xml'
+Failed to apply script file C:/pennapps/pennapps2015/NLP/filter_measure.xml
+Mesh C:/pennapps/pennapps2015/NLP/untitled.dae loaded has 81697 vn 101012 fn
+Apply FilterScript: 'C:/pennapps/pennapps2015/NLP/measure.mlx'
+Failed to apply script file C:/pennapps/pennapps2015/NLP/measure.mlx
+Mesh C:/pennapps/pennapps2015/NLP/untitled.dae loaded has 81697 vn 101012 fn
+Apply FilterScript: 'C:/pennapps/pennapps2015/NLP/measure.mlx'
+Failed to apply script file C:/pennapps/pennapps2015/NLP/measure.mlx
+Mesh C:/pennapps/pennapps2015/NLP/untitled.dae loaded has 81697 vn 101012 fn
+Apply FilterScript: 'C:/pennapps/pennapps2015/NLP/measure.mxl'
+Starting Script of 1 actionsfilter: Compute Topological Measures
+filter Compute Topological Measures not foundFailed to apply script file C:/pennapps/pennapps2015/NLP/measure.mxl
+Mesh C:/pennapps/pennapps2015/NLP/untitled.dae loaded has 81697 vn 101012 fn
+Apply FilterScript: 'C:/pennapps/pennapps2015/NLP/measure.mxl'
+Starting Script of 1 actionsfilter: computeTopoMeasure
+filter computeTopoMeasure not foundFailed to apply script file C:/pennapps/pennapps2015/NLP/measure.mxl
+Mesh C:/pennapps/pennapps2015/NLP/untitled.dae loaded has 81697 vn 101012 fn
+Apply FilterScript: 'C:/pennapps/pennapps2015/NLP/measure.mlx'
+Starting Script of 1 actionsfilter: Compute Geometric Measures
+filter Compute Geometric Measures not foundFailed to apply script file C:/pennapps/pennapps2015/NLP/measure.mlx

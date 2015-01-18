@@ -31,7 +31,8 @@ public class json_fetcher : MonoBehaviour {
 		int z = 0;
 
 		foreach(KeyValuePair<string, JSONNode> e in data["entities"].AsObject) 
-		{	
+		{
+			Color c = Color.black;
 			Debug.Log ("Insantiating: " + e.Key);
 			GameObject obj = (GameObject)Instantiate(Resources.Load(e.Key));
 			// e.value is a list of qualifiers (i.e. book: ["red"])
@@ -45,6 +46,19 @@ public class json_fetcher : MonoBehaviour {
 				if(v.ToString().Contains("small")){
 					obj.transform.localScale -= new Vector3(1.5f,1.5f,1.5f);
 				}
+
+				if(v.ToString ().Contains ("red")){
+					Debug.Log ("Coloring " + obj + " red");
+					c = Color.red;
+				}
+				else if(v.ToString().Contains("blue")){
+					Debug.Log ("Coloring " + obj + " blue");
+					c = Color.blue;
+				}
+				else if(v.ToString ().Contains("green")){
+					Debug.Log ("Coloring " + obj + " green");
+					c = Color.green;
+				}
 				//		if(v..Equals("big")){
 				//}
 			}
@@ -55,6 +69,9 @@ public class json_fetcher : MonoBehaviour {
 			for (int i = 0; i < meshFilters.Length; i++) {
 				combine[i].mesh = meshFilters[i].sharedMesh;
 				combine[i].transform = meshFilters[i].transform.localToWorldMatrix;
+				if(c != Color.black){
+					meshFilters[i].renderer.material.color = Color.red;
+				}
 			}
 			
 			pico.GetComponent<MeshFilter>().mesh = new Mesh();
@@ -63,38 +80,39 @@ public class json_fetcher : MonoBehaviour {
 			Debug.Log(e.Key);
 			nameToObject[e.Key] = obj;
 			meshDic[e.Key] = pico;
+
 		}
 
 
 		foreach(JSONNode dep in data ["deps"].AsArray)
 		{
-			Debug.Log(dep);
+			Debug.Log (dep);
 			string subject = dep[0];
 			string preposition = dep[1];
 			string obj = dep[2];
 
-			float y, maximum, minimum, v;
+			float y, maximum, minimum, v, _x, _z;
 			switch(preposition){
 			case "prep_on":
 			case "prep_on_top_of":
 				// x, z are the same
-				// y of object is the height of the subject
+				// y of object is the height of the subject + the y offset of the subject
 				//float subj_size_x = meshDic[obj].renderer.bounds.size.x;
 				//float subj_size_z = meshDic[obj].renderer.bounds.size.z;
-				maximum = nameToObject[subject].transform.position.x;
-				minimum = maximum - meshDic[obj].renderer.bounds.size.x;
-				Debug.Log (minimum);
-				Debug.Log(maximum);
-				v = Random.Range(minimum, maximum);
-				Debug.Log(v);
-				y = meshDic[obj].renderer.bounds.size.y;
-				Debug.Log(y);
-				nameToObject[subject].transform.position = new Vector3(v, 1 * y, v);
+//				maximum = nameToObject[obj].transform.position.x;
+//				minimum = maximum - meshDic[obj].renderer.bounds.size.x;
+//				v = Random.Range(minimum, maximum);
+
+				_x = meshDic[obj].renderer.transform.position.x - (meshDic[obj].renderer.bounds.size.x / 2);
+				_z = meshDic[obj].renderer.transform.position.z - (meshDic[obj].renderer.bounds.size.z / 2);
+			
+				y = meshDic[obj].renderer.bounds.size.y + meshDic[obj].renderer.transform.position.y;
+				nameToObject[subject].transform.position 	= new Vector3(_x, y, _z);
+				meshDic[subject].transform.position 		= new Vector3(_x, y, _z);
 				break;
 
 			case "prep_under":
 				y = meshDic[obj].renderer.bounds.size.y;
-				Debug.Log(y);
 				maximum = nameToObject[subject].transform.position.x;
 				minimum = maximum - meshDic[obj].renderer.bounds.size.x;
 				float y_pos = nameToObject[subject].transform.position.y;

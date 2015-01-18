@@ -1,47 +1,92 @@
-import json
-import urllib2
+import os
+import os.path
+import urllib
+import zipfile
+import requests
 from celery import Celery
-from nltk.corpus import wordnet as wn
 
-BROKER_URL = 'redis://localhost:6379/0'
+app = Celery('hello', broker='redis://104.236.92.111:6379/0')
 
-app = Celery('tasks', broker=BROKER_URL)
-def classify(url, query):
-    # print request
-    req = urllib2.Request("https://sender.blockspring.com/api_v2/blocks/d54a2e2c28aebab4fe079ff547cea495?api_key=b93c92e09d3b2ffd8ea386a1e93ba0ea")
-    req.add_header('Content-Type', 'application/json')
 
-    data = {"img": url}
+os.mkdir('models')
 
-    results = urllib2.urlopen(req, json.dumps(data)).read()
+CLASSIFY_ENDPOINT = 'http://158.130.167.232/classify'
+COLLECTOR_ENDPOINT = 'http://localhost/'
+LOCAL_IP = urllib.urlopen('http://ipecho.net/plain').read()
+
+
+def log(message):
+    requests.post(COLLECTOR_ENDPOINT, json = {"error":message})
+    print "error: ", message
+
+def grab(entity):
+    entity_id = entity['id']
+    query = entity['query']
+    binary_url = entity['binary_url']
+    filename = 'warehouse-'+query+'-'+entity_id+'.'+binary_url.split('name=')[1].split('&')[0]+'.zip'
+    urllib.urlretrieve(binary_url, filename)
+    model_path = None
+    model_filename = None
+    with zipfile.ZipFile(filename) as zf:
+        for member in zf.infolist():
+            words = member.filename.split('/')
+            path = 'models\\'+filename.replace('.zip', '')
+            for word in words[:-1]:
+                drive, word = os.path.splitdrive(word)
+                head, word = os.path.split(word)
+                if word in (os.curdir, os.pardir, ''):
+                    continue
+                path = os.path.join(path, word)
+            if '.kml' not in member.filename:
+                zf.extract(member, path)
+                if '.dae' in member.filename:
+                    model_path = path
+                    model_filename = member.filename
+    return model_path, model_filename
+
+@app.task
+def processor(particle):
+    query, entry_id = particle
+    entity = None
     try:
-        query = wn.synsets(query)[0]
+        r = requests.get(
+            "https://3dwarehouse.sketchup.com/warehouse/GetEntity",
+            params = {"id":entry_id}).json()
+        for filetype in ["ks", "k2"]:
+            if filetype in r["binaries"]:
+                if r["binaries"][filetype]["fileSize"] < 15000000:
+                    entity = r
+                    binary_url = r["binaries"][filetype]["url"]
+                    entity["binary_url"] = binary_url
+                    entity["query"] = query
     except:
-        print "NO SIMS"
-        return str(-1)
-    # print query
-    res = json.loads(results)
-    sims = []
-    print res
-    for x in res[:5]:
-        # print x
-        # v = x+'.n.01'
-        # print v
-        try:
-            s = wn.synsets(x)[0]
-            # print s
-            sims.append(query.path_similarity(s))
-        except:
-            print "COULDNT SIMS: " + str(x)
-    sims = [x for x in sims if x != None]
-    print sims
-
-    for x in range(len(sims)):
-        sims[x] = (((len(sims)-x)*.1)+1)*sims[x]
-
-    print sims
-
-    print "SCORE: " + str(sum(sims)/float(len(sims)))
-    if len(sims) == 0:
-        return str(-1)
-    return str(sum(sims)/float(len(sims)))
+        log("warehouse-processor1-"+entry_id)
+        return False
+    if entity == None:
+        log("warehouse-processor2-"+entry_id)
+        return False
+    if entity['reviewCount'] >= 1 and entity['averageRating'] <= 2:
+        log("warehouse-processor3-"+entry_id)
+        return False
+    try:
+        r = requests.post(CLASSIFY_ENDPOINT, json = {'url':entity['binaries']['bot_lt']['url'],
+                                                     'query':query})
+        score = float(r.text)
+    except:
+        log("warehouse-processor4-"+str(particle))
+        return False
+    try:
+        creation = {}
+        creation["cnn_score"] = score
+        model_path, model_filename = grab(entity)
+        creation["model_path"] = model_path + '/' + model_filename
+        os.system('xvfb-run meshlabserver -l '+model_path+'/logfile.txt -i ' +
+                  creation['model_path'] + ' -s measure.mlx')
+        with open(model_path + '/logfile.txt') as logfile:
+            creation["mesh"] = logfile.read()
+        creation["url_on_child"] = 'http://' + LOCAL_IP + '/' + model_path
+        requests.post(COLLECTOR_ENDPOINT, json = creation)
+    except:
+        log("warehouse-processor5-"+str(particle))
+        return False
+    return True

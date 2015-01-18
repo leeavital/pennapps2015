@@ -1,20 +1,46 @@
 import requests
 import json
 import shutil
+import urllib
+import zipfile
+import os.path
+from tasks import processor
+from flask import Flask, request, redirect, url_for, \
+     abort, render_template, flash, make_response, jsonify # clean these up
+app = Flask(__name__)
+app.config.from_object(__name__)
 
-filetypes = ["ks", "k2", "bot_st"]
-# could also be any of:
-# skj, smontage, ks, bot_smontage, st, s8, lt, bot_st, log
+CLASSIFY_ENDPOINT = 'http://158.130.167.232/classify'
+LOCAL_IP = urllib.urlopen('http://ipecho.net/plain').read()
+
+
+####
+'''
+
+root -> children -> local
+
+root gets list of possible entitites, sends them out to children
+children operate on possible entities, and send back good processed stuff to root
+root does the reduce step on what the children send it
+the root now knows what model to use, and so gives the client the URL on one of the children pointing to the model
+
+
+'''
+####
+
+
 
 def log(message):
     requests.get("http://datarelayer.appspot.com/set/error/" + message)
     print "error: ", message
+
 
 def find(query):
     print "QUERY: " + str(query)
     # returns a list of strings to drop into grab
     r = requests.get("http://3dwarehouse.sketchup.com/warehouse/Search",
                      params={"class":"entity","q":query,"startRow":"1", "endRow":"10"})
+
     output = []
     try:
         entries = r.json()["entries"]
@@ -45,18 +71,23 @@ def grab(obj, filename):
         shutil.copyfileobj(r.raw, f)
 '''
 
-def objCNNscore(obj, query):
-    return float(requests.post('http://158.130.167.232/classify',
-                               json = {'url':obj["description"]["binaries"]["bot_lt"]["url"],
-                                       'query':query}).text)
 
-def select(find_results, query):
-    scores = []
-    for result in find_results:
-        scores.append(objCNNscore(result, query))
-    return find_results[scores.index(max(scores))]
+@app.route('/', methods=['POST'])
+def collect():
+    print request
+    entity = request.get_json()
+    print entity
+    print entity['cnn_score']
+    return 'yo homilimlilimi'
+
+def collector(entities):
+    score_sorted = sorted(entities, key = lambda x: x['score'])
+    best_entity = entities[-1]
+    return best_entity["url_on_child"]
 
 if __name__ == '__main__':
     print 'Model: '
     query = str(raw_input())
-    print select(find(query), query)
+    for particle in emitter(query):
+        processor.delay(particle)
+    app.run(host='0.0.0.0', port=80)

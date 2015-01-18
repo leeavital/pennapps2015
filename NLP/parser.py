@@ -196,7 +196,7 @@ def static_index():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80)
+    app.run(host='0.0.0.0', port=80, ssl_context=("/Users/lee/pennapps2015/NLP/server.crt", "/Users/lee/pennapps2015/NLP/server.key"))
 
 #     ModelDownloader(["banana"]).run()
 
