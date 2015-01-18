@@ -7,8 +7,17 @@ from celery import Celery
 
 app = Celery('hello', broker='redis://104.236.92.111:6379/0')
 
+
+os.mkdir('models')
+
 CLASSIFY_ENDPOINT = 'http://158.130.167.232/classify'
+COLLECTOR_ENDPOINT = 'http://localhost/'
 LOCAL_IP = urllib.urlopen('http://ipecho.net/plain').read()
+
+
+def log(message):
+    requests.post(COLLECTOR_ENDPOINT, json = {"error":message})
+    print "error: ", message
 
 def grab(entity):
     entity_id = entity['id']
@@ -20,16 +29,16 @@ def grab(entity):
     with zipfile.ZipFile(filename) as zf:
         for member in zf.infolist():
             words = member.filename.split('/')
-            path = filename.replace('.zip', '')
+            path = 'models\\'+filename.replace('.zip', '')
             for word in words[:-1]:
                 drive, word = os.path.splitdrive(word)
                 head, word = os.path.split(word)
                 if word in (os.curdir, os.pardir, ''):
                     continue
                 path = os.path.join(path, word)
-            if '.kml' not in member:
+            if '.kml' not in member.filename:
                 zf.extract(member, path)
-                if '.dae' in member:
+                if '.dae' in member.filename:
                     model_path = path
     return model_path
 
@@ -49,24 +58,31 @@ def processor(particle):
                     entity["binary_url"] = binary_url
                     entity["query"] = query
     except:
-        log("warehouse-processor-"+entry_id)
-        return None
+        log("warehouse-processor1-"+entry_id)
+        return False
     if entity == None:
-        return None
-    if entity['description']['reviewCount'] >= 1 and entity['description']['averageRating'] <= 2:
-        return None
+        log("warehouse-processor2-"+entry_id)
+        return False
+    if entity['reviewCount'] >= 1 and entity['averageRating'] <= 2:
+        log("warehouse-processor3-"+entry_id)
+        return False
     try:
-        r = requests.post(CLASSIFY_ENDPOINT, json = {'url':obj['description']['binaries']['bot_lt']['url'],
+        r = requests.post(CLASSIFY_ENDPOINT, json = {'url':entity['binaries']['bot_lt']['url'],
                                                      'query':query})
         score = float(r.text)
     except:
-        log("warehouse-processor-"+str(particle))
-        return None
-    entity["score"] = score
-    model_path = grab(entity)
-    entity["model_path"] = model_path
-    ## PROBABLY NOT GOING TO WORK
-    entity["url_on_child"] = 'http://' + LOCAL_IP + model_path
-
-
-
+        log("warehouse-processor4-"+str(particle))
+        return False
+    try:
+        creation = {}
+        creation["cnn_score"] = score
+        model_path = grab(entity)
+        creation["model_path"] = model_path
+        creation["ratio"] = (0.0, 0.0)
+        # ratio of width : (height + depth)
+        creation["url_on_child"] = 'http://' + LOCAL_IP + '/' + model_path
+        requests.post(COLLECTOR_ENDPOINT, json = creation)
+    except:
+        log("warehouse-processor5-"+str(particle))
+        return False
+    return True

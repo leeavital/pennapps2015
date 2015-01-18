@@ -4,7 +4,11 @@ import shutil
 import urllib
 import zipfile
 import os.path
-import tasks
+from tasks import processor
+from flask import Flask, request, redirect, url_for, \
+     abort, render_template, flash, make_response, jsonify # clean these up
+app = Flask(__name__)
+app.config.from_object(__name__)
 
 CLASSIFY_ENDPOINT = 'http://158.130.167.232/classify'
 LOCAL_IP = urllib.urlopen('http://ipecho.net/plain').read()
@@ -52,17 +56,22 @@ def emitter(query):
         return []
     return zip([query] * len(entries), map(lambda x:x["id"], entries))
 
+@app.route('/', methods=['POST'])
+def collect():
+    print request
+    entity = request.get_json()
+    print entity
+    print entity['cnn_score']
+    return 'yo homilimlilimi'
 
 def collector(entities):
     score_sorted = sorted(entities, key = lambda x: x['score'])
     best_entity = entities[-1]
     return best_entity["url_on_child"]
 
-
 if __name__ == '__main__':
-    while True:
-        print 'Model: '
-        query = str(raw_input())
-        for particle in emitter(query):
-            grab.delay(particle)
-        
+    print 'Model: '
+    query = str(raw_input())
+    for particle in emitter(query):
+        processor.delay(particle)
+    app.run(host='0.0.0.0', port=80)
